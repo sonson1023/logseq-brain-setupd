@@ -119,6 +119,20 @@ claude mcp list
 
 ---
 
+## 스킬 (슬래시 커맨드)
+
+설치 시 `~/.claude/commands/logseq/`에 5개 Logseq 스킬이 복사되어 글로벌로 사용 가능합니다:
+
+| 커맨드 | 설명 |
+|--------|------|
+| `/logseq:polaris` | Top of Mind 읽기, 작업 목표 정렬 평가 |
+| `/logseq:save` | 결정/학습을 atomic note로 저장 |
+| `/logseq:search` | 지식 그래프 검색 (키워드 + 시맨틱) |
+| `/logseq:journal` | 오늘 일지 작성/업데이트 |
+| `/logseq:ingest` | URL/텍스트를 inbox에 구조화 저장 |
+
+---
+
 ## 그래프 구조
 
 ```
@@ -187,6 +201,13 @@ logseq-brain-setup/
 ├── install.sh                # macOS 설치 스크립트
 ├── install.ps1               # Windows 설치 스크립트
 ├── config.env                # 공유 설정 (토큰)
+├── commands/
+│   └── logseq/               # Claude Code 스킬 (→ ~/.claude/commands/logseq/)
+│       ├── polaris.md
+│       ├── save.md
+│       ├── search.md
+│       ├── journal.md
+│       └── ingest.md
 ├── scripts/
 │   ├── ensure-logseq.sh      # SessionStart hook (macOS)
 │   └── ensure-logseq.ps1     # SessionStart hook (Windows)

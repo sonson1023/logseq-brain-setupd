@@ -131,12 +131,22 @@ if (Test-Path (Split-Path $DesktopConfig)) {
 }
 
 # ── 7. Hook 스크립트 복사 ──
-Write-Host "→ [7/8] Hook 스크립트..."
+Write-Host "→ [7/9] Hook 스크립트..."
 New-Item -ItemType Directory -Path $ScriptsDir -Force | Out-Null
 Copy-Item "$ScriptDir\scripts\ensure-logseq.ps1" "$ScriptsDir\ensure-logseq.ps1" -Force
 
-# ── 8. CLAUDE.md & Hook 설정 ──
-Write-Host "→ [8/8] CLAUDE.md & SessionStart Hook..."
+# ── 8. Logseq 스킬 설치 ──
+Write-Host "→ [8/9] Logseq 스킬 설치..."
+$CommandsDir = "$ClaudeDir\commands\logseq"
+New-Item -ItemType Directory -Path $CommandsDir -Force | Out-Null
+Get-ChildItem "$ScriptDir\commands\logseq\*.md" | ForEach-Object {
+    Copy-Item $_.FullName "$CommandsDir\$($_.Name)" -Force
+    $skillName = $_.BaseName
+    Write-Host "  + /logseq:$skillName"
+}
+
+# ── 9. CLAUDE.md & Hook 설정 ──
+Write-Host "→ [9/9] CLAUDE.md & SessionStart Hook..."
 
 # CLAUDE.md에 Logseq 섹션 추가
 New-Item -ItemType Directory -Path $ClaudeDir -Force | Out-Null

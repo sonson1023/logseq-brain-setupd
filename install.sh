@@ -137,8 +137,18 @@ else
   echo "  ⚠ Claude Desktop 미설치 — 스킵"
 fi
 
-# ── 8. Hook & 자동 실행 ──
-echo "→ [8/8] Hook & 자동 실행 설정..."
+# ── 8. Logseq 스킬 설치 ──
+echo "→ [8/9] Logseq 스킬 설치..."
+COMMANDS_DIR="$CLAUDE_DIR/commands/logseq"
+mkdir -p "$COMMANDS_DIR"
+for skill in "$SCRIPT_DIR"/commands/logseq/*.md; do
+  filename="$(basename "$skill")"
+  cp "$skill" "$COMMANDS_DIR/$filename"
+  echo "  + /logseq:${filename%.md}"
+done
+
+# ── 9. Hook & 자동 실행 ──
+echo "→ [9/9] Hook & 자동 실행 설정..."
 
 # ensure-logseq.sh 복사
 mkdir -p "$SCRIPTS_DIR"

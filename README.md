@@ -121,6 +121,20 @@ claude mcp list
 
 ---
 
+## Skills (Slash Commands)
+
+The installer copies 5 Logseq skills to `~/.claude/commands/logseq/`, available globally:
+
+| Command | Description |
+|---------|-------------|
+| `/logseq:polaris` | Read Top of Mind, evaluate work alignment with goals |
+| `/logseq:save` | Save a decision or learning as an atomic note |
+| `/logseq:search` | Search the knowledge graph (keyword + semantic) |
+| `/logseq:journal` | Create or update today's daily journal |
+| `/logseq:ingest` | Ingest a URL or text into inbox as structured note |
+
+---
+
 ## Graph Structure
 
 ```
@@ -189,6 +203,13 @@ logseq-brain-setup/
 ├── install.sh                # macOS installer
 ├── install.ps1               # Windows installer
 ├── config.env                # Shared config (token)
+├── commands/
+│   └── logseq/               # Claude Code skills (→ ~/.claude/commands/logseq/)
+│       ├── polaris.md
+│       ├── save.md
+│       ├── search.md
+│       ├── journal.md
+│       └── ingest.md
 ├── scripts/
 │   ├── ensure-logseq.sh      # SessionStart hook (macOS)
 │   └── ensure-logseq.ps1     # SessionStart hook (Windows)
