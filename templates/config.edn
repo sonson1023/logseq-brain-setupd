@@ -1,0 +1,10 @@
+{:preferred-format :markdown
+ :journal/page-title-format "yyyy-MM-dd"
+ :journal/file-name-format "yyyy-MM-dd"
+ :feature/enable-journals? true
+ :feature/enable-flashcards? false
+ :feature/enable-whiteboards? false
+ :ui/show-brackets? true
+ :default-home {:page "inbox"}
+ :pages-directory "pages"
+ :journals-directory "journals"}
