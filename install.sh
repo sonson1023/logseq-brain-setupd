@@ -150,10 +150,11 @@ done
 # ── 9. Hook & 자동 실행 ──
 echo "→ [9/9] Hook & 자동 실행 설정..."
 
-# ensure-logseq.sh 복사
+# 세션 스크립트 복사
 mkdir -p "$SCRIPTS_DIR"
 cp "$SCRIPT_DIR/scripts/ensure-logseq.sh" "$SCRIPTS_DIR/ensure-logseq.sh"
-chmod +x "$SCRIPTS_DIR/ensure-logseq.sh"
+cp "$SCRIPT_DIR/scripts/logseq-session-start.sh" "$SCRIPTS_DIR/logseq-session-start.sh"
+chmod +x "$SCRIPTS_DIR/ensure-logseq.sh" "$SCRIPTS_DIR/logseq-session-start.sh"
 
 # CLAUDE.md에 Logseq 섹션 추가 (없을 때만)
 mkdir -p "$CLAUDE_DIR"
@@ -175,9 +176,17 @@ s['hooks'] = {
     'SessionStart': [{
         'hooks': [{
             'type': 'command',
-            'command': 'bash ~/scripts/ensure-logseq.sh',
-            'timeout': 15,
-            'statusMessage': 'Logseq 연결 확인 중...'
+            'command': 'bash ~/scripts/logseq-session-start.sh',
+            'timeout': 20,
+            'statusMessage': 'Logseq 세션 컨텍스트 로딩...'
+        }]
+    }],
+    'Stop': [{
+        'hooks': [{
+            'type': 'prompt',
+            'prompt': '세션이 종료됩니다. 이번 세션에서 수행한 작업을 Logseq 일지에 기록하세요.\\n\\n1. mcp__logseq-graph__read_file로 오늘 일지(journals/YYYY-MM-DD.md)를 읽으세요\\n2. 이번 세션에서 한 작업, 결정, 변경사항을 요약하세요\\n3. mcp__logseq-graph__write_file로 일지에 추가하세요 (기존 내용 유지, 새 내용 append)\\n4. 미완료 태스크가 있으면 TODO로 기록하세요\\n\\n형식:\\n- ## Session Log (HH:MM)\\n  - **작업**: 수행한 내용 요약\\n  - **결정**: 내린 결정들\\n  - **변경 파일**: 주요 변경 파일 목록\\n  - **다음 할 일**: 이어서 해야 할 작업\\n  - **프로젝트**: [[project/<name>]] (프로젝트 스코프인 경우)',
+            'timeout': 30,
+            'statusMessage': '세션 기록 저장 중...'
         }]
     }]
 }
