@@ -2,7 +2,11 @@
 
 3-Layer Compounding Memory Stack for Claude Code & Claude Desktop with Logseq.
 
+Supports **macOS** and **Windows**.
+
 ## Quick Start
+
+### macOS
 
 ```bash
 git clone https://github.com/<your-username>/logseq-brain-setup.git
@@ -10,22 +14,30 @@ cd logseq-brain-setup
 bash install.sh
 ```
 
+### Windows (PowerShell)
+
+```powershell
+git clone https://github.com/<your-username>/logseq-brain-setup.git
+cd logseq-brain-setup
+.\install.ps1
+```
+
 ## What it does
 
-| Step | Action |
-|------|--------|
-| 1 | Homebrew / Node.js 확인 & 설치 |
-| 2 | Logseq 앱 설치 (`brew --cask`) |
-| 3 | MCP npm 패키지 설치 (`qmd`, `server-filesystem`, `logseq-mcp`) |
-| 4 | `~/logseq-graph/` 그래프 구조 생성 |
-| 5 | Claude Code MCP 서버 등록 (user scope) |
-| 6 | Claude Desktop MCP 설정 |
-| 7 | SessionStart Hook (Logseq 자동 실행) |
-| 8 | macOS 로그인 시 Logseq 자동 시작 |
+| Step | macOS | Windows |
+|------|-------|---------|
+| Package Manager | Homebrew | winget |
+| Logseq 설치 | `brew --cask` | `winget install` |
+| npm 패키지 | `qmd`, `server-filesystem`, `logseq-mcp` | same |
+| 그래프 생성 | `~/logseq-graph/` | `%USERPROFILE%\logseq-graph\` |
+| Claude Code MCP | `claude mcp add --scope user` | same |
+| Claude Desktop | `~/Library/.../claude_desktop_config.json` | `%APPDATA%\Claude\claude_desktop_config.json` |
+| Hook | `bash ensure-logseq.sh` | `powershell ensure-logseq.ps1` |
+| 자동 시작 | Login Items (osascript) | Startup 폴더 바로가기 |
 
 ## After install (1회 수동)
 
-1. Logseq 앱 → **Add graph** → `~/logseq-graph`
+1. Logseq 앱 → **Add graph** → `~/logseq-graph` (또는 `%USERPROFILE%\logseq-graph`)
 2. **Settings → Advanced → Developer mode** ON
 3. **Settings → Advanced → HTTP APIs server** ON
 4. **Settings → Advanced → API auth token** → `config.env`의 토큰 붙여넣기
@@ -42,15 +54,17 @@ LOGSEQ_TOKEN="your-token-here"
 
 ```
 logseq-brain-setup/
-├── install.sh              # 메인 설치 스크립트
-├── config.env              # 설정 (토큰 등)
+├── install.sh                # macOS 설치 스크립트
+├── install.ps1               # Windows 설치 스크립트
+├── config.env                # 설정 (토큰 등)
 ├── scripts/
-│   └── ensure-logseq.sh    # SessionStart hook
+│   ├── ensure-logseq.sh      # SessionStart hook (macOS)
+│   └── ensure-logseq.ps1     # SessionStart hook (Windows)
 └── templates/
-    ├── config.edn          # Logseq 앱 설정
+    ├── config.edn            # Logseq 앱 설정
     ├── polaris___top-of-mind.md
     ├── inbox.md
-    └── claude-md-addon.md  # CLAUDE.md에 추가될 내용
+    └── claude-md-addon.md    # CLAUDE.md에 추가될 내용
 ```
 
 ## MCP Servers
