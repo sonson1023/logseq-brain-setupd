@@ -2,23 +2,41 @@
 
 [한국어 문서 (Korean)](./README.ko.md)
 
-> Turn Claude from a clever autocomplete into a **genuine senior collaborator** that knows your stack, your standards, and your long-term goals.
+> Turn Claude from a clever autocomplete into a **genuine senior collaborator** that remembers everything across sessions.
 
-A 3-layer compounding memory system that wires your **project DNA**, **personal knowledge graph**, and **external research** into one living, searchable brain — powered by [Logseq](https://logseq.com) + [Claude](https://claude.ai).
+A **session memory continuity** system that wires your project DNA, personal knowledge graph, and session history into one living, searchable brain — powered by [Logseq](https://logseq.com) + [Claude](https://claude.ai).
 
 **Supports macOS and Windows.**
 
 ---
 
-## Why?
+## The Problem
 
-Most developers waste **30-40 minutes per session** re-explaining context to AI. This setup eliminates that by giving Claude persistent, searchable access to everything you've built, decided, and learned.
+Every time you start a new Claude session, it forgets everything — architecture decisions from yesterday, the bug you fixed last night, the naming conventions you agreed on. You waste **30-40 minutes per session** re-explaining context.
 
-| Layer | What | How |
-|-------|------|-----|
-| **Session Memory** | `CLAUDE.md` + Auto-Memory | Claude reads project rules & writes its own learnings |
-| **Knowledge Graph** | Logseq + MCP Bridge | Claude traverses your entire second brain in real time |
-| **Ingestion** | Inbox → Commonplace | Every consumed content becomes permanently searchable |
+## The Solution
+
+Install once. Every session after that:
+
+```
+┌─ Session Start ──────────────────────────────────┐
+│  ✓ Logseq auto-launches                          │
+│  ✓ Previous session journal loaded                │
+│  ✓ Pending tasks loaded                           │
+│  ✓ Polaris goals & principles loaded              │
+│  ✓ Current project context detected               │
+│  → Claude starts with FULL context                │
+├─ During Session ─────────────────────────────────┤
+│  ✓ /logseq:save — persist decisions & learnings   │
+│  ✓ /logseq:search — find past knowledge           │
+│  ✓ Project-scoped isolation                       │
+├─ Session End ────────────────────────────────────┤
+│  ✓ Work summary auto-saved to journal             │
+│  ✓ Decisions recorded                             │
+│  ✓ Pending tasks captured                         │
+│  → Next session picks up exactly where you left   │
+└──────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -28,7 +46,7 @@ Most developers waste **30-40 minutes per session** re-explaining context to AI.
 
 ```bash
 git clone https://github.com/sonson1023/logseq-brain-setupd.git
-cd logseq-brain-setup
+cd logseq-brain-setupd
 bash install.sh
 ```
 
@@ -36,15 +54,86 @@ bash install.sh
 
 ```powershell
 git clone https://github.com/sonson1023/logseq-brain-setupd.git
-cd logseq-brain-setup
+cd logseq-brain-setupd
 .\install.ps1
 ```
 
-That's it. The script handles everything automatically.
+### After install (one-time manual setup)
+
+1. Open **Logseq** → **Add a graph** → select `~/logseq-graph`
+2. **Settings** → **Advanced** → **Developer mode** → ON
+3. **Settings** → **Advanced** → **HTTP APIs server** → ON
+4. **Settings** → **Advanced** → **Authorization tokens** → paste token from `config.env`
+
+### First session
+
+On your first Claude Code session after install, run:
+
+```
+/logseq:config
+```
+
+Choose your memory mode and preferences. Or skip it — sensible defaults apply automatically.
 
 ---
 
-## What the installer does
+## How Session Memory Continuity Works
+
+### Memory Architecture
+
+```
+                    ┌──────────────┐
+                    │  Logseq App  │ ← Human can browse & edit
+                    │  (Graph UI)  │
+                    └──────┬───────┘
+                           │
+┌─────────────┐    ┌──────┴───────┐    ┌──────────────┐
+│ Claude Code │◄──►│ ~/logseq-graph│◄──►│Claude Desktop│
+│  (MCP x3)   │    │   (files)    │    │   (MCP x3)   │
+└──────┬──────┘    └──────────────┘    └──────────────┘
+       │
+       ▼
+┌──────────────┐
+│  MEMORY.md   │ ← Optional (both mode)
+│ (Claude mem) │
+└──────────────┘
+```
+
+### Session Lifecycle
+
+| Event | What happens | Stored where |
+|-------|-------------|--------------|
+| **Session Start** | Hook loads previous journal + tasks + Polaris + project context | → Claude's context window |
+| **During work** | `/logseq:save` persists decisions, `/logseq:search` finds past knowledge | → Logseq pages |
+| **Session End** | Stop hook auto-saves work summary, decisions, pending tasks | → Logseq journal |
+| **Next session** | Start hook reads the above | → Full continuity |
+
+### Memory Modes
+
+Configure via `/logseq:config`:
+
+| Mode | Short-term | Long-term | Best for |
+|------|-----------|-----------|----------|
+| `logseq` (default) | Logseq journals | Logseq pages | Full knowledge graph with search & visualization |
+| `claude` | MEMORY.md | MEMORY.md | Minimal setup, no Logseq dependency |
+| `both` | Both | Both | Maximum redundancy & flexibility |
+
+### Why not just MEMORY.md?
+
+| | MEMORY.md | Logseq |
+|---|-----------|--------|
+| Capacity | ~200 lines (truncated) | Unlimited |
+| Search | Full-load only | BM25 + semantic search |
+| Structure | Flat text file | Namespaces + graph links |
+| History | Latest state only | Time-series journals |
+| Human access | Hard to browse | Full app with graph view |
+| Project isolation | Automatic by project | Namespace-based |
+
+**MEMORY.md** = fast sticky note. **Logseq** = long-term brain.
+
+---
+
+## What the Installer Does
 
 | # | Action | macOS | Windows |
 |---|--------|-------|---------|
@@ -54,84 +143,73 @@ That's it. The script handles everything automatically.
 | 4 | MCP npm packages | `qmd`, `server-filesystem`, `logseq-mcp` | same |
 | 5 | Graph structure | `~/logseq-graph/` | `%USERPROFILE%\logseq-graph\` |
 | 6 | Claude Code MCP | `claude mcp add --scope user` (3 servers) | same |
-| 7 | Claude Desktop MCP | `~/Library/.../claude_desktop_config.json` | `%APPDATA%\Claude\claude_desktop_config.json` |
-| 8 | SessionStart Hook | `bash ensure-logseq.sh` | `powershell ensure-logseq.ps1` |
-| 9 | Auto-start on login | Login Items (osascript) | Startup folder shortcut |
-
----
-
-## After install (one-time manual setup)
-
-The Logseq HTTP API requires enabling through the app UI:
-
-1. Open **Logseq** → **Add a graph** → select `~/logseq-graph` (or `%USERPROFILE%\logseq-graph`)
-2. **Settings** → **Advanced** → **Developer mode** → ON
-3. **Settings** → **Advanced** → **HTTP APIs server** → ON
-4. **Settings** → **Advanced** → **Authorization tokens** → paste the token from `config.env`
-
-Verify:
-
-```bash
-# macOS / Linux
-curl -s http://localhost:12315/api -H "Authorization: Bearer <your-token>"
-
-# Windows PowerShell
-Invoke-RestMethod -Uri http://localhost:12315/api -Headers @{Authorization="Bearer <your-token>"}
-```
-
----
-
-## Configuration
-
-### `config.env`
-
-```env
-# Logseq API auth token
-LOGSEQ_TOKEN="your-token-here"
-
-# Graph path override (optional)
-# LOGSEQ_GRAPH="$HOME/logseq-graph"
-```
-
-> **Security**: This file contains your API token. Always use a **private repository**.
-
-### Generating a new token
-
-```bash
-python3 -c "import secrets; print(secrets.token_urlsafe(32))"
-```
-
----
-
-## MCP Servers
-
-Three servers are registered globally (`--scope user`) so they work across **all projects**:
-
-| Server | Type | Purpose |
-|--------|------|---------|
-| `logseq` | HTTP API | Search, create blocks, manage tasks, query graph DB |
-| `logseq-graph` | Filesystem | Direct read/write to all Logseq files |
-| `qmd` | Search Engine | Fast BM25 keyword + semantic search across pages |
-
-Verify with:
-
-```bash
-claude mcp list
-```
+| 7 | Claude Desktop MCP | `claude_desktop_config.json` | same |
+| 8 | Skills | 7 slash commands → `~/.claude/commands/logseq/` | same |
+| 9 | Hooks | SessionStart (context load) + Stop (journal save) | same |
+| 10 | Auto-start | Login Items | Startup folder shortcut |
 
 ---
 
 ## Skills (Slash Commands)
 
-The installer copies 5 Logseq skills to `~/.claude/commands/logseq/`, available globally:
+7 commands installed globally to `~/.claude/commands/logseq/`:
 
 | Command | Description |
 |---------|-------------|
-| `/logseq:polaris` | Read Top of Mind, evaluate work alignment with goals |
-| `/logseq:save` | Save a decision or learning as an atomic note |
-| `/logseq:search` | Search the knowledge graph (keyword + semantic) |
+| `/logseq:config` | Configure memory mode, language, preferences |
+| `/logseq:init` | Initialize project namespace (run once per project) |
+| `/logseq:polaris` | Check goal alignment with Top of Mind |
+| `/logseq:save` | Save a decision or learning as atomic note |
+| `/logseq:search` | Search knowledge graph (keyword + semantic) |
 | `/logseq:journal` | Create or update today's daily journal |
-| `/logseq:ingest` | Ingest a URL or text into inbox as structured note |
+| `/logseq:ingest` | Ingest URL or text into inbox |
+
+---
+
+## Project Isolation
+
+Each project gets its own namespace in the graph. Notes never leak between projects.
+
+### Setup
+
+```bash
+cd ~/my-project
+/logseq:init my-project
+```
+
+This creates a `project/my-project` namespace and adds config to `.claude/CLAUDE.md`.
+
+### How it works
+
+```
+~/logseq-graph/pages/
+├── polaris___top-of-mind.md              ← Global (shared)
+├── commonplace___docker-patterns.md      ← Global knowledge
+├── project___my-project___decisions.md   ← Project-scoped
+├── project___my-project___architecture.md
+└── project___other-project___decisions.md ← Different project
+```
+
+| Scope | Read | Write |
+|-------|------|-------|
+| Global (`polaris/`, `commonplace/`) | All projects | Explicit only (`global:` prefix) |
+| Project (`project/<name>/`) | Current project only | Default for saves |
+
+---
+
+## MCP Servers
+
+Three servers registered globally (`--scope user`):
+
+| Server | Type | Purpose |
+|--------|------|---------|
+| `logseq` | HTTP API | Search, blocks, tasks, graph queries |
+| `logseq-graph` | Filesystem | Direct read/write to all files |
+| `qmd` | Search | BM25 keyword + semantic search |
+
+```bash
+claude mcp list  # Verify all connected
+```
 
 ---
 
@@ -139,85 +217,80 @@ The installer copies 5 Logseq skills to `~/.claude/commands/logseq/`, available 
 
 ```
 ~/logseq-graph/
-├── pages/                          # All notes (flat + namespace)
-│   ├── polaris___top-of-mind.md    # Goals, principles, active projects
-│   ├── commonplace___*.md          # Atomic notes, evergreen ideas
-│   └── inbox.md                    # Temporary landing zone
-├── journals/                       # Daily logs (auto-created by Logseq)
+├── pages/                          # All notes (namespace-based)
+│   ├── polaris___top-of-mind.md    # Goals, principles
+│   ├── commonplace___*.md          # Evergreen knowledge
+│   ├── project___<name>___*.md     # Project-scoped notes
+│   └── inbox___*.md                # Ingested content
+├── journals/                       # Session logs (auto)
 │   └── 2026-04-03.md
-├── assets/                         # Attachments
+├── assets/
 └── logseq/
-    └── config.edn                  # Logseq app settings
+    ├── config.edn                  # Logseq app settings
+    └── brain-config.json           # Memory stack config
 ```
-
-### Logseq Namespaces
-
-Logseq uses `___` (triple underscore) in filenames to represent `/` namespaces:
-
-| Filename | Logseq page name |
-|----------|-----------------|
-| `polaris___top-of-mind.md` | `polaris/top-of-mind` |
-| `commonplace___auth-patterns.md` | `commonplace/auth-patterns` |
 
 ---
 
 ## The Polaris Strategy
 
-`polaris/top-of-mind` is a living document containing:
-- Current quarterly goals
+`polaris/top-of-mind` is your living strategy document:
+- Quarterly goals
 - Active projects with success criteria
 - Life Razors (non-negotiable principles)
 
-Start every significant work session with:
-
-```
-Read my polaris/top-of-mind page.
-Evaluate how this task aligns with my Q2 goals.
-Flag any misalignments before we begin.
-```
-
-Claude becomes an accountability partner that pushes back when you drift from your own stated direction.
+Every session start loads this automatically. Claude becomes an accountability partner that flags when your work drifts from your stated goals.
 
 ---
 
 ## Automation
 
 ### SessionStart Hook
+1. Launches Logseq if not running
+2. Loads previous session journal
+3. Loads pending tasks
+4. Loads Polaris goals
+5. Detects current project namespace
+6. First-run detection → suggests `/logseq:config`
 
-Every time Claude Code starts, the hook automatically:
-1. Checks if Logseq is running (port 12315)
-2. Launches Logseq in background if not running
-3. Waits up to 10 seconds for API readiness
+### Stop Hook
+1. Summarizes work done in this session
+2. Records decisions made
+3. Captures pending tasks as TODOs
+4. Saves everything to today's journal
+5. Tags with project namespace if applicable
 
 ### Auto-start on Login
-
-- **macOS**: Registered as a Login Item (runs hidden)
-- **Windows**: Shortcut placed in Startup folder (runs minimized)
+- **macOS**: Login Item (hidden)
+- **Windows**: Startup folder shortcut (minimized)
 
 ---
 
 ## Repo Structure
 
 ```
-logseq-brain-setup/
-├── install.sh                # macOS installer
-├── install.ps1               # Windows installer
-├── config.env                # Shared config (token)
-├── commands/
-│   └── logseq/               # Claude Code skills (→ ~/.claude/commands/logseq/)
-│       ├── polaris.md
-│       ├── save.md
-│       ├── search.md
-│       ├── journal.md
-│       └── ingest.md
+logseq-brain-setupd/
+├── install.sh                    # macOS installer
+├── install.ps1                   # Windows installer
+├── config.env                    # Token & settings
+├── commands/logseq/              # Skills (→ ~/.claude/commands/logseq/)
+│   ├── config.md                 #   /logseq:config
+│   ├── init.md                   #   /logseq:init
+│   ├── polaris.md                #   /logseq:polaris
+│   ├── save.md                   #   /logseq:save
+│   ├── search.md                 #   /logseq:search
+│   ├── journal.md                #   /logseq:journal
+│   └── ingest.md                 #   /logseq:ingest
 ├── scripts/
-│   ├── ensure-logseq.sh      # SessionStart hook (macOS)
-│   └── ensure-logseq.ps1     # SessionStart hook (Windows)
+│   ├── logseq-session-start.sh   # SessionStart hook (macOS)
+│   ├── logseq-session-start.ps1  # SessionStart hook (Windows)
+│   ├── ensure-logseq.sh          # Logseq launcher (macOS)
+│   └── ensure-logseq.ps1         # Logseq launcher (Windows)
 └── templates/
-    ├── config.edn            # Logseq app config
+    ├── config.edn
     ├── polaris___top-of-mind.md
     ├── inbox.md
-    └── claude-md-addon.md    # Appended to ~/.claude/CLAUDE.md
+    └── claude-md-addon.md
 ```
 
 ---
@@ -228,7 +301,8 @@ The installer is safe to run multiple times:
 - Already-installed tools are skipped
 - Existing files are never overwritten
 - MCP servers are removed then re-registered
-- CLAUDE.md addon is appended only if not already present
+- Skills are always copied fresh
+- Hooks are added only if not present
 
 ---
 
@@ -237,12 +311,22 @@ The installer is safe to run multiple times:
 | Symptom | Cause | Fix |
 |---------|-------|-----|
 | `logseq` MCP: Failed | Logseq not running or API disabled | Open Logseq, enable HTTP API |
-| 401 Unauthorized | Token mismatch | Check `config.env` matches Logseq settings |
-| Port 12315 not listening | Logseq HTTP server off | Settings → Advanced → HTTP APIs server ON |
+| 401 Unauthorized | Token mismatch | Match `config.env` with Logseq settings |
+| Port 12315 not listening | HTTP server off | Settings → Advanced → HTTP APIs server ON |
 | `qmd` no results | No embeddings | Run `qmd embed` for semantic search |
+| No context on start | Logseq graph empty | Fill in `polaris/top-of-mind`, use `/logseq:journal` |
+| First run prompt | Normal | Run `/logseq:config` or ignore for defaults |
+
+---
+
+## Security
+
+- `config.env` contains your API token → use a **private repository**
+- Logseq data stays **100% local** — no cloud sync unless you configure it
+- MCP servers only access `~/logseq-graph/` — no other filesystem access
 
 ---
 
 ## Credits
 
-Inspired by the [3-Layer Memory Stack](https://x.com/intheworldofai/status/2039255561280057794) concept, adapted from Obsidian to Logseq for block-based, local-first knowledge management.
+Inspired by the [3-Layer Memory Stack](https://x.com/intheworldofai/status/2039255561280057794) concept, adapted from Obsidian to Logseq for block-based, local-first knowledge management with session memory continuity.
