@@ -5,22 +5,23 @@ description: "Create or update today's Logseq daily journal with work logs, deci
 
 # /logseq:journal - Daily Journal Management
 
-## Purpose
-Create or update today's Logseq daily journal entry with work summaries, decisions made, and task tracking.
+## Project Namespace Detection
+Before execution, detect the current project scope:
+1. Read `.claude/CLAUDE.md` in current working directory
+2. Look for `Logseq namespace: project/<name>` line
+3. If found → tag journal entries with project name
 
 ## Arguments
 - `$ARGUMENTS` - (optional) Content to add to today's journal
-  - If empty: show today's journal or create a new one
-  - If provided: append the content to today's journal
 
 ## Execution
 
 1. **Determine Today's Date**
    - Format: `YYYY-MM-DD` (e.g., `2026-04-03`)
-   - Journal filename: `journals/2026-04-03.md`
+   - Journal path: `/Users/formsdev/logseq-graph/journals/<today>.md`
 
 2. **Read or Create Journal**
-   - Try `mcp__logseq-graph__read_file` for `journals/<today>.md`
+   - Try `mcp__logseq-graph__read_file` for journal file
    - If not exists, create with template:
    ```markdown
    - ## Daily Log
@@ -36,20 +37,23 @@ Create or update today's Logseq daily journal entry with work summaries, decisio
    ```
 
 3. **If Arguments Provided**
-   - Parse the content type:
-     - Starts with "TODO" or "할일" → add to Tasks section
-     - Starts with "결정" or "decision" → add to Decisions section
-     - Starts with "내일" or "tomorrow" → add to Tomorrow section
-     - Otherwise → add to Notes section
-   - Append to the appropriate section using `mcp__logseq-graph__write_file`
+   - **Project scoped**: prefix entry with `[[project/<name>]]` tag
+   ```
+   - [[project/taxsaas]] JWT 인증 방식을 session으로 변경 결정
+   ```
+   - **Global**: no prefix
+   - Parse content type:
+     - "TODO" / "할일" → Tasks section
+     - "결정" / "decision" → Decisions section
+     - "내일" / "tomorrow" → Tomorrow section
+     - Otherwise → Notes section
+   - Append to appropriate section
 
 4. **Show Current State**
-   - Display today's journal contents
-   - Show task count (TODO/DOING/DONE)
+   - Display today's journal
+   - If project scoped, highlight entries for current project
 
 ## Behavior
 - Never overwrite existing journal content — always append
-- Use Logseq block format (bullet points with indentation)
-- Add timestamps to entries when relevant
-- Link to relevant pages with `[[wikilinks]]` when context is clear
+- Project tags (`[[project/<name>]]`) make journal entries filterable in Logseq
 - 한국어로 응답

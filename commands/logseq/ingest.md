@@ -5,8 +5,12 @@ description: "Ingest external content (URL, text) into the Logseq inbox for revi
 
 # /logseq:ingest - Content Ingestion Pipeline
 
-## Purpose
-Ingest external content (articles, URLs, ideas, meeting notes) into the Logseq inbox as structured atomic notes ready for review.
+## Project Namespace Detection
+Before execution, detect the current project scope:
+1. Read `.claude/CLAUDE.md` in current working directory
+2. Look for `Logseq namespace: project/<name>` line
+3. If found → tag ingested content with project and save to project inbox
+4. If not found → save to global inbox
 
 ## Arguments
 - `$ARGUMENTS` - URL to ingest, or raw text/idea to capture
@@ -14,66 +18,51 @@ Ingest external content (articles, URLs, ideas, meeting notes) into the Logseq i
 ## Execution
 
 1. **Detect Input Type**
-   - URL (starts with http/https) → fetch and extract
+   - URL (http/https) → fetch and extract
    - Raw text → structure directly
 
 2. **For URLs**
-   - Use `WebFetch` to retrieve the content
-   - Extract:
-     - **Title**: Article/page title
-     - **Key Claims**: Main arguments or points (bullet list)
-     - **Frameworks**: Mental models or frameworks mentioned
-     - **Action Items**: Actionable takeaways
-     - **Open Questions**: Unanswered questions worth exploring
-     - **Source**: Original URL and author
+   - Use `WebFetch` to retrieve content
+   - Extract: Title, Key Claims, Frameworks, Action Items, Open Questions, Source
 
 3. **For Raw Text/Ideas**
-   - Structure the input into:
-     - **Core Idea**: One-sentence summary
-     - **Details**: Expanded notes
-     - **Connections**: What existing knowledge this relates to
+   - Structure: Core Idea, Details, Connections
 
 4. **Check for Related Notes**
-   - Use `mcp__qmd__query` to find existing related notes
-   - Add `[[wikilinks]]` to connect
+   - Use `mcp__qmd__query` to find related notes
+   - If project scoped, search project namespace first
+   - Add `[[wikilinks]]`
 
-5. **Generate Inbox Note**
+5. **Generate Note**
+   - **Project scoped** → save to `pages/project___<name>___inbox___<slug>.md`
    ```markdown
    ---
-   title: inbox/<slugified-title>
-   tags: inbox, <source-type>, <topic-tags>
-   date: <today YYYY-MM-DD>
-   source: <url-if-applicable>
+   title: project/<name>/inbox/<slug>
+   tags: inbox, <name>, <topic-tags>
+   date: <today>
+   source: <url>
    status: review
+   project: <name>
    ---
 
    - ## <Title>
+     - **Project**: [[project/<name>]]
      - **Source**: [<title>](<url>)
-     - **Date Ingested**: <today>
    - ## Key Claims
-     - <claim 1>
-     - <claim 2>
-   - ## Frameworks
-     - <framework or mental model>
+     - ...
    - ## Action Items
-     - TODO <actionable takeaway>
-   - ## Open Questions
-     - <question worth exploring>
+     - TODO ...
    - ## Connections
-     - Related: [[<existing note>]]
+     - [[project/<name>/decisions]] 관련 가능
    ```
 
-6. **Save to Inbox**
-   - Use `mcp__logseq-graph__write_file` to save to `pages/inbox___<slug>.md`
-   - Report what was saved
+   - **Global** → save to `pages/inbox___<slug>.md` (existing behavior)
 
-7. **Suggest Next Step**
-   - "Logseq에서 검토 후 `commonplace/`로 이동하세요"
-   - Or suggest specific namespace based on content type
+6. **Suggest Next Step**
+   - Project: "검토 후 `project/<name>/`의 적절한 페이지로 이동하세요"
+   - Global: "검토 후 `commonplace/`로 이동하세요"
 
 ## Behavior
-- Keep extraction concise — focus on signal, not noise
-- Always add source attribution for URLs
-- Tag with content type (article, video, paper, idea, meeting)
-- Use `status: review` so unreviewed items are easily queryable
+- Always add project backlink for project-scoped ingestion
+- Tag with `status: review` for easy filtering
 - 한국어로 응답

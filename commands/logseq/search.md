@@ -5,56 +5,66 @@ description: "Search the Logseq knowledge graph using keyword and semantic searc
 
 # /logseq:search - Knowledge Graph Search
 
-## Purpose
-Search across the entire Logseq knowledge graph to find notes, decisions, code snippets, and past learnings.
+## Project Namespace Detection
+Before execution, detect the current project scope:
+1. Read `.claude/CLAUDE.md` in current working directory
+2. Look for `Logseq namespace: project/<name>` line
+3. If found → search project namespace first, then global
+4. If not found → search entire graph
 
 ## Arguments
-- `$ARGUMENTS` - Search query (e.g., "Docker Compose 설정", "인증 패턴", "Q1 회고")
+- `$ARGUMENTS` - Search query
+- Prefix with `project:` to search only current project
+- Prefix with `global:` to search only global (polaris/, commonplace/)
+- No prefix → search both (project first, then global)
 
 ## Execution
 
 1. **Multi-Strategy Search**
-   Run parallel searches for best coverage:
 
-   a. **Keyword Search (QMD lex)**
-      ```
-      mcp__qmd__query: searches=[{type:'lex', query:'<extracted keywords>'}], intent='<user intent>'
-      ```
+   a. **If project scoped** — search project namespace first:
+   ```
+   mcp__qmd__query: searches=[{type:'lex', query:'project/<name> <keywords>'}], intent='<intent>'
+   ```
 
-   b. **Semantic Search (QMD vec)** — if embeddings available
-      ```
-      mcp__qmd__query: searches=[{type:'vec', query:'<natural language query>'}], intent='<user intent>'
-      ```
+   b. **Global search**:
+   ```
+   mcp__qmd__query: searches=[{type:'lex', query:'<keywords>'}], intent='<intent>'
+   ```
 
-   c. **File Search (logseq-graph)** — for filename patterns
-      ```
-      mcp__logseq-graph__search_files: path='pages', pattern='<keyword>'
-      ```
+   c. **File pattern search** (for project-scoped):
+   ```
+   mcp__logseq-graph__search_files: path='/Users/formsdev/logseq-graph/pages', pattern='project___<name>'
+   ```
 
-2. **Aggregate & Rank Results**
-   - Deduplicate across search methods
-   - Prioritize by relevance score (minScore: 0.3)
-   - Group by namespace (polaris/, commonplace/, project/, journals/)
+2. **Aggregate & Rank**
+   - Deduplicate across methods
+   - Group results:
+     - 📁 **프로젝트** (`project/<name>/`) — show first if project scoped
+     - 🌐 **글로벌** (`polaris/`, `commonplace/`)
+     - 📅 **일지** (`journals/`)
 
 3. **Retrieve Top Results**
-   - Use `mcp__qmd__get` or `mcp__logseq-graph__read_file` to fetch full content of top 3-5 results
+   - Fetch full content of top 3-5 results
 
 4. **Output Format**
    ```
-   ## 🔍 검색 결과: "<query>"
+   ## 🔍 검색: "<query>"
+   [범위: project/<name> + 글로벌]
 
-   ### 📄 <Note Title 1> (commonplace/topic)
+   ### 📁 프로젝트 결과
+   #### <Note Title> (project/<name>/<topic>)
    > 관련 내용 발췌...
 
-   ### 📄 <Note Title 2> (journals/2026-03-15)
+   ### 🌐 글로벌 결과
+   #### <Note Title> (commonplace/<topic>)
    > 관련 내용 발췌...
 
    ---
-   총 N개 결과 | 검색 방법: lex + vec
+   프로젝트 N개 + 글로벌 N개 결과
    ```
 
 ## Behavior
-- If no results found, suggest alternative search terms
-- Show the source file path so user can open it in Logseq
-- Highlight the most relevant snippet from each result
+- Project results shown first when project scoped
+- If no project results, still show global results
 - 한국어로 응답
